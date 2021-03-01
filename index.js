@@ -76,8 +76,7 @@ function runSearch() {
 }
 // Returns joined table of employees (joining all 3 tables)
 // Then returns to first prompt
-const employeeSearch = (answer) => {
-  console.log(answer);
+const employeeSearch = () => {
   // Queries database
   const query = `SELECT employee.id,  employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
   // If error occurs, throw error
@@ -89,6 +88,8 @@ const employeeSearch = (answer) => {
     runSearch();
   });
 };
+
+// Functions to view employees by dept
 async function getAllDepartments() {
   return await connection.query(
     "SELECT department.id, department.name, SUM(role.salary) AS utilized_budget FROM department LEFT JOIN role ON role.department_id = department.id LEFT JOIN employee ON employee.role_id = role.id GROUP BY department.id, department.name"
@@ -119,102 +120,129 @@ async function deptSearch() {
   runSearch();
 }
 
-// const managerSearch = () => {
+// Function to get employees
+async function getEmployees() {
+  return await connection.query(`SELECT employee.id,  employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id);`
+  );
+}
+
+// Functions to view employees by manager
+async function getAllManagers() {
+  // Gets all employee managers and groups by manager id
+  return await connection.query(
+    "SELECT employee.manager_id, employee.first_name, employee.last_name FROM employee LEFT JOIN role ON role.department_id = department_id GROUP BY employee.manager_id, employee.first_name, employee.last_name"
+  );
+}
+async function getEmployeesByManager(manager) {
+  return connection.query(
+    "SELECT employee.id, employee.first_name, employee.last_name, role.title, employee.manager_id AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id WHERE manager_id = ?;",
+    manager
+  );
+}
+async function managerSearch() {
+  let mangr = [];
+  let managerChoices;
+  mangr = await getEmployees();
+  console.log(mangr);
+  managerChoices = await mangr.map(({ first_name, last_name, id }) => ({
+    name: `${first_name} ${last_name}`,
+    value: id
+  }));
+  console.log(managerChoices);
+  const { manager } = await inquirer.prompt
+  ({
+        name: 'employee',
+        type: 'list',
+        message: 'Which manager would you like to search for?',
+        choices: managerChoices
+    });
+    const managers = await getEmployeesByManager(manager);
+    console.table(managers);
+    runSearch();
+    };
+
+// Functions to add employee
+// const addEmployee = () => {
+//   inquirer
+//     .prompt(
+//       {
+//         name: "fname",
+//         type: "input",
+//         message: "What is the employee's first name?",
+//       },
+//       {
+//         name: "lname",
+//         type: "input",
+//         message: "What is the employee's last name?",
+//       },
+//       {
+//         name: "empRole",
+//         type: "list",
+//         message: "What is the employee's role?",
+//         choices: [
+//           "Salesperson",
+//           "Lawyer",
+//           "Software Engineer",
+//           "Accountant",
+//           "Manager",
+//           "Administrator",
+//         ],
+//       },
+//       {
+//         name: "empMang",
+//         type: "list",
+//         message: "Who is the employee's manager?",
+//         choices: [
+//           "John Doe",
+//           "Ashley Chan",
+//           "Mike Rodriguez",
+//           "Kevin Tupik",
+//           "Malia Brown",
+//           "Sarah Lourd",
+//           "Tom Allen",
+//         ],
+//       }
+//     )
+//     .then((answer) => {
+//       const query = `INSERT INTO employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
+
+//       connection.query(query, (err, data) => {
+//         if (err) throw err;
+//         console.table(data);
+//         runSearch();
+//       });
+//     });
+// };
+
+// Functions to remove employee
+// const removeEmployee = () => {
 //   inquirer
 //     .prompt({
-//         name: 'employee',
-//         type: 'input',
-//         message: 'Which manager would you like to search for?'
-//     }).then(answer => {
-//         const query = 'SELECT id, first_name, last_name FROM employee WHERE ?';
+//       name: "employee",
+//       type: "input",
+//       message: "Which employee would you like to remove?",
+//       choices: [
+//         "John Doe",
+//         "Ashley Chan",
+//         "Mike Rodriguez",
+//         "Kevin Tupik",
+//         "Malia Brown",
+//         "Sarah Lourd",
+//         "Tom Allen",
+//       ],
+//     })
+//     .then((answer) => {
+//       const query = `DELETE FROM employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
 
-//         connection.query(query, { id: answer.id }, (err, data) => {
-//             if(err) throw err;
-//             console.table(data);
-//             runSearch();
-//         });
+//       connection.query(query, { id: answer.id }, (err, data) => {
+//         if (err) throw err;
+//         console.table(data);
+//         runSearch();
+//       });
 //     });
-//     };
+// };
 
-const addEmployee = () => {
-  inquirer
-    .prompt(
-      {
-        name: "fname",
-        type: "input",
-        message: "What is the employee's first name?",
-      },
-      {
-        name: "lname",
-        type: "input",
-        message: "What is the employee's last name?",
-      },
-      {
-        name: "empRole",
-        type: "list",
-        message: "What is the employee's role?",
-        choices: [
-          "Salesperson",
-          "Lawyer",
-          "Software Engineer",
-          "Accountant",
-          "Manager",
-          "Administrator",
-        ],
-      },
-      {
-        name: "empMang",
-        type: "list",
-        message: "Who is the employee's manager?",
-        choices: [
-          "John Doe",
-          "Ashley Chan",
-          "Mike Rodriguez",
-          "Kevin Tupik",
-          "Malia Brown",
-          "Sarah Lourd",
-          "Tom Allen",
-        ],
-      }
-    )
-    .then((answer) => {
-      const query = `INSERT INTO employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
-
-      connection.query(query, (err, data) => {
-        if (err) throw err;
-        console.table(data);
-        runSearch();
-      });
-    });
-};
-
-const removeEmployee = () => {
-  inquirer
-    .prompt({
-      name: "employee",
-      type: "input",
-      message: "Which employee would you like to remove?",
-      choices: [
-        "John Doe",
-        "Ashley Chan",
-        "Mike Rodriguez",
-        "Kevin Tupik",
-        "Malia Brown",
-        "Sarah Lourd",
-        "Tom Allen",
-      ],
-    })
-    .then((answer) => {
-      const query = `DELETE FROM employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
-
-      connection.query(query, { id: answer.id }, (err, data) => {
-        if (err) throw err;
-        console.table(data);
-        runSearch();
-      });
-    });
-};
-
+//Functions to update employee role
 // const updateRole = () => {
 //   inquirer
 //     .prompt({
@@ -232,6 +260,7 @@ const removeEmployee = () => {
 //     });
 //     };
 
+// Functions to update employee manager
 // const updateManager = () => {
 //   inquirer
 //     .prompt({
