@@ -143,20 +143,22 @@ async function managerSearch() {
   let mangr = [];
   let managerChoices;
   mangr = await getEmployees();
-  console.log(mangr);
+  //console.log(mangr);
   managerChoices = await mangr.map(({ first_name, last_name, id }) => ({
     name: `${first_name} ${last_name}`,
     value: id
   }));
-  console.log(managerChoices);
-  const { manager } = await inquirer.prompt
+  //console.log(managerChoices);
+  const { employee } = await inquirer.prompt
   ({
         name: 'employee',
         type: 'list',
         message: 'Which manager would you like to search for?',
         choices: managerChoices
     });
-    const managers = await getEmployeesByManager(manager);
+    const managers = await 
+    // Passes in employee from line 152
+    getEmployeesByManager(employee);
     console.table(managers);
     runSearch();
     };
