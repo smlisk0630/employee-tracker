@@ -72,7 +72,9 @@ function runSearch() {
           console.log(`Invalid action: ${answer.action}`);
           break;
       }
+      return
     });
+    return
 }
 // Returns joined table of employees (joining all 3 tables)
 // Then returns to first prompt
@@ -122,7 +124,15 @@ async function deptSearch() {
 
 // Function to get employees
 async function getEmployees() {
-  return await connection.query(`SELECT employee.id,  employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id);`
+  return await connection.query(
+    `SELECT employee.id,  employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id);`
+  );
+}
+
+// Function to get all roles
+async function getRoles() {
+  return await connection.query(
+    `SELECT * FROM role;`
   );
 }
 
@@ -146,75 +156,81 @@ async function managerSearch() {
   //console.log(mangr);
   managerChoices = await mangr.map(({ first_name, last_name, id }) => ({
     name: `${first_name} ${last_name}`,
-    value: id
+    value: id,
   }));
   //console.log(managerChoices);
-  const { employee } = await inquirer.prompt
-  ({
-        name: 'employee',
-        type: 'list',
-        message: 'Which manager would you like to search for?',
-        choices: managerChoices
-    });
-    const managers = await 
-    // Passes in employee from line 152
-    getEmployeesByManager(employee);
-    console.table(managers);
-    runSearch();
-    };
+  const { employee } = await inquirer.prompt({
+    name: "employee",
+    type: "list",
+    message: "Which manager would you like to search for?",
+    choices: managerChoices,
+  });
+  const managers = await // Passes in employee from line 152
+  getEmployeesByManager(employee);
+  console.table(managers);
+  runSearch();
+}
 
 // Functions to add employee
-// const addEmployee = () => {
-//   inquirer
-//     .prompt(
-//       {
-//         name: "fname",
-//         type: "input",
-//         message: "What is the employee's first name?",
-//       },
-//       {
-//         name: "lname",
-//         type: "input",
-//         message: "What is the employee's last name?",
-//       },
-//       {
-//         name: "empRole",
-//         type: "list",
-//         message: "What is the employee's role?",
-//         choices: [
-//           "Salesperson",
-//           "Lawyer",
-//           "Software Engineer",
-//           "Accountant",
-//           "Manager",
-//           "Administrator",
-//         ],
-//       },
-//       {
-//         name: "empMang",
-//         type: "list",
-//         message: "Who is the employee's manager?",
-//         choices: [
-//           "John Doe",
-//           "Ashley Chan",
-//           "Mike Rodriguez",
-//           "Kevin Tupik",
-//           "Malia Brown",
-//           "Sarah Lourd",
-//           "Tom Allen",
-//         ],
-//       }
-//     )
-//     .then((answer) => {
-//       const query = `INSERT INTO employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
+async function addEmployee() {
+  const employee = await inquirer.prompt([
+    {
+      name: "first_name",
+      type: "input",
+      message: "What is the employee's first name?",
+    },
+    {
+      name: "last_name",
+      type: "input",
+      message: "What is the employee's last name?",
+    },
+    {
+      name: "empRole",
+      type: "list",
+      message: "What is the employee's role?",
+      choices: [
+        "Sales Lead",
+        "Salesperson",
+        "Lead Engineer",
+        "Software Engineer",
+        "Account Manager",
+        "Accountant",
+        "Legal Team Lead",
+        "Lawyer",
+      ],
+    },
+    {
+      name: "empMang",
+      type: "list",
+      message: "Who is the employee's manager?",
+      choices: [
+        "John Doe",
+        "Ashley Chan",
+        "Mike Rodriguez",
+        "Kevin Tupik",
+        "Malia Brown",
+        "Sarah Lourd",
+        "Tom Allen",
+      ],
+    },
+  ]);
+  // Contains rows from the role and employee tables
+  const allRoles = await getRoles();
+  const allManagers = await getAllManagers();
+  // Filters through all roles and managers and returns employee title (role) and manager's name
+  const filterRole = allRoles.filter(role => role.title === employee.empRole)[0];
+  const filterManager = allManagers.filter(manager => manager.first_name + ' ' + manager.last_name === employee.empMang)[0];
+  // Sets id and manager id properties from filter variables as id properties for employee object
+  employee.role_id = filterRole.id;
+  employee.manager_id = filterManager.manager_id;
+  // Deletes empRole and empMang properties from employee object
+  delete employee.empRole;
+  delete employee.empMang;
 
-//       connection.query(query, (err, data) => {
-//         if (err) throw err;
-//         console.table(data);
-//         runSearch();
-//       });
-//     });
-// };
+  return await connection.query("INSERT INTO employee (employee.first_name, employee.last_name, employee.role_id, employee.manager_id) VALUES (?)", employee);
+  console.table(employee);
+  runSearch();
+}
 
 // Functions to remove employee
 // const removeEmployee = () => {
