@@ -18,7 +18,7 @@ This application can be found at https://smlisk0630.github.io/employee-tracker/.
 npm install employee-tracker
 ```
 ## User Stories
-[placeholder]
+![Employee Tracker Video](assets/employee-tracker.gif)
 ## Usage
 Can be used to view employees, departments, and roles, and add employees.
 ## Dependencies
