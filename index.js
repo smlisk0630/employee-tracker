@@ -151,12 +151,10 @@ async function managerSearch() {
   let mangr = [];
   let managerChoices;
   mangr = await getEmployees();
-  //console.log(mangr);
   managerChoices = await mangr.map(({ first_name, last_name, id }) => ({
     name: `${first_name} ${last_name}`,
     value: id,
   }));
-  //console.log(managerChoices);
   const { employee } = await inquirer.prompt({
     name: "employee",
     type: "list",
@@ -243,17 +241,23 @@ async function addEmployee() {
   console.table(allEmployees);
   runSearch();
 }
+
 // Functions to remove employee
 async function removeEmployee(employee) {
   return await connection.query(
-    `DELETE FROM employee WHERE id = ?;`, employee
+    "DELETE FROM employee WHERE id = ?;", employee
   );
 }
 
-const removeEmployee = () => {
-  inquirer
-    .prompt({
-      name: "employee",
+async function removeanEmployee() {
+let emps = [];
+let deleteChoice;
+deleteChoice = await emps.map(({ first_name, last_name, id }) => ({
+  name: `${first_name} ${last_name}`,
+  value: id,
+}));
+const { employee } = await inquirer.prompt({
+  name: "employee",
       type: "input",
       message: "Which employee would you like to remove?",
       choices: [
@@ -265,18 +269,12 @@ const removeEmployee = () => {
         "Sarah Lourd",
         "Tom Allen",
       ],
-    })
-    .then((answer) => {
-      const query = 
-
-      connection.query
-
-        console.table(data);
-        runSearch();
-      });
     });
-};
-
+const employees = await // Passes in employee from line 152
+removeEmployee(employee);
+console.table(employees);
+runSearch();
+}
 //Functions to update employee role
 // const updateRole = () => {
 //   inquirer
