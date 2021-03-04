@@ -4,7 +4,7 @@
 ![Forks](https://img.shields.io/github/forks/smlisk0630/employee-tracker)
 ![GitHub Top Language](https://img.shields.io/github/languages/top/smlisk0630/employee-tracker)
 ## Description
-Employee Tracker is a command-line application that allows the user to view departments, roles, and employees.
+Employee Tracker is a command-line application that allows the user to view departments, roles, and employees, and add employees.
 ## Link to Deployed Application
 This application can be found at https://smlisk0630.github.io/employee-tracker/.
 ## Table of Contents
@@ -20,7 +20,7 @@ npm install employee-tracker
 ## User Stories
 [placeholder]
 ## Usage
-Can be used to view employees, departments, and roles.
+Can be used to view employees, departments, and roles, and add employees.
 ## Dependencies
 - express
 - util

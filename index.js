@@ -72,9 +72,9 @@ function runSearch() {
           console.log(`Invalid action: ${answer.action}`);
           break;
       }
-      return
+      return;
     });
-    return
+  return;
 }
 // Returns joined table of employees (joining all 3 tables)
 // Then returns to first prompt
@@ -131,9 +131,7 @@ async function getEmployees() {
 
 // Function to get all roles
 async function getRoles() {
-  return await connection.query(
-    `SELECT * FROM role;`
-  );
+  return await connection.query(`SELECT * FROM role;`);
 }
 
 // Functions to view employees by manager
@@ -169,6 +167,14 @@ async function managerSearch() {
   getEmployeesByManager(employee);
   console.table(managers);
   runSearch();
+}
+
+async function addAnEmployee(employee) {
+  // add employee
+  return await connection.query(
+    "INSERT INTO employee SET ?",
+    employee
+  );
 }
 
 // Functions to add employee
@@ -218,8 +224,13 @@ async function addEmployee() {
   const allRoles = await getRoles();
   const allManagers = await getAllManagers();
   // Filters through all roles and managers and returns employee title (role) and manager's name
-  const filterRole = allRoles.filter(role => role.title === employee.empRole)[0];
-  const filterManager = allManagers.filter(manager => manager.first_name + ' ' + manager.last_name === employee.empMang)[0];
+  const filterRole = allRoles.filter(
+    (role) => role.title === employee.empRole
+  )[0];
+  const filterManager = allManagers.filter(
+    (manager) =>
+      manager.first_name + " " + manager.last_name === employee.empMang
+  )[0];
   // Sets id and manager id properties from filter variables as id properties for employee object
   employee.role_id = filterRole.id;
   employee.manager_id = filterManager.manager_id;
@@ -227,38 +238,44 @@ async function addEmployee() {
   delete employee.empRole;
   delete employee.empMang;
 
-  return await connection.query("INSERT INTO employee (employee.first_name, employee.last_name, employee.role_id, employee.manager_id) VALUES (?)", employee);
-  console.table(employee);
+  await addAnEmployee(employee);
+  const allEmployees = await getEmployees();
+  console.table(allEmployees);
   runSearch();
 }
-
 // Functions to remove employee
-// const removeEmployee = () => {
-//   inquirer
-//     .prompt({
-//       name: "employee",
-//       type: "input",
-//       message: "Which employee would you like to remove?",
-//       choices: [
-//         "John Doe",
-//         "Ashley Chan",
-//         "Mike Rodriguez",
-//         "Kevin Tupik",
-//         "Malia Brown",
-//         "Sarah Lourd",
-//         "Tom Allen",
-//       ],
-//     })
-//     .then((answer) => {
-//       const query = `DELETE FROM employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ',manager.last_name) AS manager FROM employee LEFT JOIN role ON (role.id = employee.role_id) LEFT JOIN department ON (department.id = role.department_id) LEFT JOIN employee manager ON (manager.id = employee.manager_id)`;
+async function removeEmployee(employee) {
+  return await connection.query(
+    `DELETE FROM employee WHERE id = ?;`, employee
+  );
+}
 
-//       connection.query(query, { id: answer.id }, (err, data) => {
-//         if (err) throw err;
-//         console.table(data);
-//         runSearch();
-//       });
-//     });
-// };
+const removeEmployee = () => {
+  inquirer
+    .prompt({
+      name: "employee",
+      type: "input",
+      message: "Which employee would you like to remove?",
+      choices: [
+        "John Doe",
+        "Ashley Chan",
+        "Mike Rodriguez",
+        "Kevin Tupik",
+        "Malia Brown",
+        "Sarah Lourd",
+        "Tom Allen",
+      ],
+    })
+    .then((answer) => {
+      const query = 
+
+      connection.query
+
+        console.table(data);
+        runSearch();
+      });
+    });
+};
 
 //Functions to update employee role
 // const updateRole = () => {
